@@ -54,24 +54,26 @@
 
   function setArt(url) {
     const img = $("art");
+    const blobs = document.querySelectorAll(".blob");
     if (!url) {
       document.body.classList.remove("has-art");
       img.removeAttribute("src");
-      document.querySelector(".backdrop-art").style.backgroundImage = "";
+      delete img.dataset.src;
+      blobs.forEach((b) => { b.style.backgroundImage = ""; });
       return;
     }
     if (img.dataset.src === url) return;
     img.dataset.src = url;
     img.onload = () => {
       document.body.classList.add("has-art");
-      document.querySelector(".backdrop-art").style.backgroundImage = `url("${url}")`;
+      blobs.forEach((b) => { b.style.backgroundImage = `url("${url}")`; });
       tintFrom(img);
     };
     img.onerror = () => document.body.classList.remove("has-art");
     img.src = url;
   }
 
-  // Average colour of the cover, nudged towards something warm and legible.
+  // Average colour of the cover, kept dark enough for white text.
   function tintFrom(img) {
     try {
       const c = document.createElement("canvas");
@@ -88,7 +90,10 @@
       }
       let rgb = [r / n, gr / n, b / n];
       const lum = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
-      const k = lum < 90 ? 90 / Math.max(lum, 1) : lum > 190 ? 190 / lum : 1;
+      const k = lum > 90 ? 90 / lum : 1;
+      // Bright covers make a bright glow: tone it down (0.9 dark ... 0.3 white).
+      const glow = Math.max(0.3, Math.min(0.9, 0.9 - (lum - 110) / 200));
+      document.documentElement.style.setProperty("--glow", glow.toFixed(2));
       rgb = rgb.map((v) => Math.round(Math.min(255, v * k)));
       document.documentElement.style.setProperty("--tint", rgb.join(" "));
     } catch (_) {
@@ -128,15 +133,18 @@
     const p = Math.min(pos, dur);
     const pct = `${(p / dur) * 100}%`;
     $("fill").style.width = pct;
-    $("seed").style.left = pct;
     setText($("pos"), fmt(p));
-    setText($("dur"), fmt(dur));
+    setText($("dur"), `-${fmt(dur - p)}`); // remaining, like Apple
   }
 
   setInterval(renderTime, 250);
 
-  audio.addEventListener("pause", () => { state.pausedAt ??= performance.now(); });
+  audio.addEventListener("pause", () => {
+    state.pausedAt ??= performance.now();
+    document.body.classList.add("paused");
+  });
   audio.addEventListener("playing", () => {
+    document.body.classList.remove("paused");
     if (state.pausedAt != null) {
       state.at += performance.now() - state.pausedAt;
       state.pausedAt = null;

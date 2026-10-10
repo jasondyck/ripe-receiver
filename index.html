@@ -6,32 +6,32 @@
   <title>ripe</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Schibsted+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
 </head>
 <body class="idle">
   <div class="backdrop" aria-hidden="true">
-    <div class="backdrop-art"></div>
-    <div class="grain"></div>
+    <div class="blob a"></div>
+    <div class="blob b"></div>
   </div>
 
   <main class="stage">
     <figure class="cover">
       <img id="art" alt="" crossorigin="anonymous" decoding="async">
       <div class="cover-empty" aria-hidden="true">
-        <svg viewBox="0 0 48 48"><path d="M24 6c9 6 14 15 13 25-1 7-6 11-13 11S12 38 11 31C10 21 15 12 24 6z"/><path d="M24 6c2 10 1 23-2 36" /></svg>
+        <svg viewBox="0 0 24 24"><path d="M19 3.5v11.25a3.25 3.25 0 1 1-1.5-2.74V7.3l-8 1.6v7.85a3.25 3.25 0 1 1-1.5-2.74V6.4a1 1 0 0 1 .8-.98l9-1.8A1 1 0 0 1 19 3.5z"/></svg>
       </div>
     </figure>
 
     <section class="info">
-      <p class="eyebrow" id="album"></p>
       <h1 class="title" id="title"></h1>
       <p class="artist" id="artist"></p>
+      <p class="album" id="album"></p>
 
       <div class="timeline" id="timeline" hidden>
-        <div class="track"><div class="fill" id="fill"></div><div class="seed" id="seed"></div></div>
-        <div class="times"><span id="pos">0:00</span><span id="dur">0:00</span></div>
+        <div class="track"><div class="fill" id="fill"></div></div>
+        <div class="times"><span id="pos">0:00</span><span id="dur">-0:00</span></div>
       </div>
     </section>
 
@@ -42,7 +42,7 @@
   </main>
 
   <footer class="credit">
-    <svg class="leaf" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6c9 6 14 15 13 25-1 7-6 11-13 11S12 38 11 31C10 21 15 12 24 6z"/></svg>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9h3l4.3-3.6A1 1 0 0 1 15 6.2v11.6a1 1 0 0 1-1.7.8L9 15H6a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1zm11.5-.8a.75.75 0 0 1 1.06.04 5.5 5.5 0 0 1 0 7.52.75.75 0 1 1-1.1-1.02 4 4 0 0 0 0-5.48.75.75 0 0 1 .04-1.06z"/></svg>
     <span id="credit">ripe</span>
   </footer>
 
