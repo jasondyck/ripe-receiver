@@ -183,8 +183,10 @@
     if (!context || audio.paused) return;
     try {
       const b = audio.buffered;
-      context.sendCustomMessage(NS, undefined, {
+      if (!ripeSender) return;
+      context.sendCustomMessage(NS, ripeSender, {
         type: "DIAG",
+        wall_ms: Date.now(),
         raw_s: +rawTime().toFixed(3),
         buffered_end_s: b && b.length ? +b.end(b.length - 1).toFixed(3) : null,
         lag_ms: Math.round(lagMs()),
@@ -246,6 +248,7 @@
   const cast = window.cast;
   const onCast = cast && cast.framework && !new URLSearchParams(location.search).has("demo");
   let context = null;
+  let ripeSender = null;
 
   // Track info for the Cast session. Smart displays (Nest Hub) show it in
   // Google's own music player on top of this page; TVs show our page.
@@ -313,7 +316,10 @@
     options.customNamespaces = { [NS]: cast.framework.system.MessageType.JSON };
     options.skipPlayersLoad = true; // plain WAV: no Shaka/MPL needed
     options.statusText = "ripe";
-    context.addCustomMessageListener(NS, (event) => apply(event.data));
+    context.addCustomMessageListener(NS, (event) => {
+      ripeSender = event.senderId; // reply here (broadcasts didn't reach ripe)
+      apply(event.data);
+    });
     context.start(options);
   } else {
     // ?demo: preview in a desktop browser (&static: no transitions, for screenshots).
