@@ -104,10 +104,16 @@
   // ---------- timeline ----------
 
   // How far behind the live edge playback is: what's downloaded but unplayed.
+  // The element's real playhead. `currentTime`/`duration` are overridden
+  // below to report the *song* position to Google's player.
+  const nativeTime = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "currentTime");
+  const nativeDuration = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "duration");
+  const rawTime = () => nativeTime.get.call(audio);
+
   function lagMs() {
     const b = audio.buffered;
     if (!b || !b.length) return 0;
-    return Math.max(0, (b.end(b.length - 1) - audio.currentTime) * 1000);
+    return Math.max(0, (b.end(b.length - 1) - rawTime()) * 1000);
   }
 
   function currentMs() {
@@ -115,6 +121,27 @@
     const until = state.pausedAt ?? performance.now();
     return Math.max(0, state.positionMs + (until - state.at) - lagMs());
   }
+
+  // Google's native player (Nest Hub) reads the media element's clock. Make
+  // it read the song: position from iOS's progress, adjusted to what's
+  // audible here, and the song's length. Capped a second short of the end
+  // so the player never decides the "track" finished; the next song's info
+  // moves it on. Seeks are ignored: an AirPlay stream can't be scrubbed here.
+  Object.defineProperty(audio, "currentTime", {
+    configurable: true,
+    get() {
+      const pos = currentMs();
+      if (pos == null || !state.durationMs) return rawTime();
+      return Math.max(0, Math.min(pos, state.durationMs - 1000)) / 1000;
+    },
+    set(_) {},
+  });
+  Object.defineProperty(audio, "duration", {
+    configurable: true,
+    get() {
+      return state.durationMs ? state.durationMs / 1000 : nativeDuration.get.call(audio);
+    },
+  });
 
   const fmt = (ms) => {
     const s = Math.floor(ms / 1000);
@@ -221,6 +248,7 @@
       const info = pm.getMediaInformation();
       if (info && state.title) {
         info.metadata = musicMetadata();
+        describeAsTrack(info);
         pm.setMediaInformation(info, true);
       }
     } catch (e) {
@@ -228,16 +256,28 @@
     }
   }
 
+  // A track with a length, not a live stream, so the native player shows a
+  // position bar instead of "LIVE".
+  function describeAsTrack(info) {
+    if (!state.durationMs) return;
+    info.streamType = cast.framework.messages.StreamType.BUFFERED;
+    info.duration = state.durationMs / 1000;
+  }
+
   if (onCast) {
     context = cast.framework.CastReceiverContext.getInstance();
     const pm = context.getPlayerManager();
     pm.setMediaElement(audio);
+    // Pause and volume only: no seeking or skipping from the Hub.
+    const C = cast.framework.messages.Command;
+    pm.setSupportedMediaCommands(C.PAUSE | C.STREAM_VOLUME | C.STREAM_MUTE, true);
 
     pm.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (req) => {
       const media = req.media || {};
       if (media.customData) {
         apply(media.customData, true);
         media.metadata = musicMetadata();
+        describeAsTrack(media);
       } else {
         const md = media.metadata || {};
         apply({
