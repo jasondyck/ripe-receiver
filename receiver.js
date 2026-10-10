@@ -26,6 +26,7 @@
     at: 0,
     pausedAt: null,
     remotePaused: false,
+    targetLagMs: null,
   };
 
   // ---------- rendering ----------
@@ -167,17 +168,21 @@
 
   setInterval(renderTime, 250);
 
-  // Catch up with the live edge. Playback can start seconds behind (the
-  // start-of-song replay, the player's buffering); drift back by playing 4%
-  // fast, pitch preserved, until about a second of audio is left in hand.
-  const CATCH_UP_ABOVE_MS = 1500;
-  const SETTLE_BELOW_MS = 1000;
+  // Play at the delay the phone expects. iOS sends audio ahead of time and
+  // assumes every speaker plays a fixed delay behind it (ripe reads that
+  // from iOS's sync packets: target_lag_ms). Hold our lag there by playing
+  // 4% fast or slow, pitch preserved, so the sound, this screen and the
+  // phone's clock all agree. Without a target, keep about a second in hand.
+  const ENTER_MS = 250;
+  const SETTLED_MS = 80;
   audio.preservesPitch = true;
   setInterval(() => {
     if (audio.paused) return;
-    const lag = lagMs();
-    if (lag > CATCH_UP_ABOVE_MS && audio.playbackRate === 1) audio.playbackRate = 1.04;
-    else if (lag < SETTLE_BELOW_MS && audio.playbackRate !== 1) audio.playbackRate = 1;
+    const target = state.targetLagMs ?? 1000;
+    const off = lagMs() - target; // + : behind the phone, - : ahead of it
+    if (off > ENTER_MS) audio.playbackRate = 1.04;
+    else if (off < -ENTER_MS) audio.playbackRate = 0.96;
+    else if (Math.abs(off) < SETTLED_MS) audio.playbackRate = 1;
   }, 1000);
   // Timing diagnostics for ripe's log: what this receiver actually plays.
   setInterval(() => {
@@ -191,6 +196,7 @@
         raw_s: +rawTime().toFixed(3),
         buffered_end_s: b && b.length ? +b.end(b.length - 1).toFixed(3) : null,
         lag_ms: Math.round(lagMs()),
+        target_lag_ms: state.targetLagMs,
         shown_ms: currentMs() == null ? null : Math.round(currentMs()),
         reported_s: +audio.currentTime.toFixed(3),
         rate: audio.playbackRate,
@@ -249,6 +255,7 @@
       }
     }
     if ("duration_ms" in msg) state.durationMs = msg.duration_ms || null;
+    if (msg.target_lag_ms != null) state.targetLagMs = msg.target_lag_ms;
 
     setArt(state.art);
     render(state.title && state.title !== before);
