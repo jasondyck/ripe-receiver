@@ -178,6 +178,25 @@
     if (lag > CATCH_UP_ABOVE_MS && audio.playbackRate === 1) audio.playbackRate = 1.04;
     else if (lag < SETTLE_BELOW_MS && audio.playbackRate !== 1) audio.playbackRate = 1;
   }, 1000);
+  // Timing diagnostics for ripe's log: what this receiver actually plays.
+  setInterval(() => {
+    if (!context || audio.paused) return;
+    try {
+      const b = audio.buffered;
+      context.sendCustomMessage(NS, undefined, {
+        type: "DIAG",
+        raw_s: +rawTime().toFixed(3),
+        buffered_end_s: b && b.length ? +b.end(b.length - 1).toFixed(3) : null,
+        lag_ms: Math.round(lagMs()),
+        shown_ms: currentMs() == null ? null : Math.round(currentMs()),
+        reported_s: +audio.currentTime.toFixed(3),
+        rate: audio.playbackRate,
+        ios_pos_ms: state.positionMs,
+        ms_since_ios_pos: state.positionMs == null ? null : Math.round(performance.now() - state.at),
+      });
+    } catch (_) { /* no sender connected */ }
+  }, 5000);
+
   // A new LOAD resets the rate; start from normal speed.
   audio.addEventListener("loadstart", () => { audio.playbackRate = 1; });
 
