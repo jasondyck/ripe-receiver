@@ -139,6 +139,21 @@
 
   setInterval(renderTime, 250);
 
+  // Catch up with the live edge. Playback can start seconds behind (the
+  // start-of-song replay, the player's buffering); drift back by playing 4%
+  // fast, pitch preserved, until about a second of audio is left in hand.
+  const CATCH_UP_ABOVE_MS = 1500;
+  const SETTLE_BELOW_MS = 1000;
+  audio.preservesPitch = true;
+  setInterval(() => {
+    if (audio.paused) return;
+    const lag = lagMs();
+    if (lag > CATCH_UP_ABOVE_MS && audio.playbackRate === 1) audio.playbackRate = 1.04;
+    else if (lag < SETTLE_BELOW_MS && audio.playbackRate !== 1) audio.playbackRate = 1;
+  }, 1000);
+  // A new LOAD resets the rate; start from normal speed.
+  audio.addEventListener("loadstart", () => { audio.playbackRate = 1; });
+
   audio.addEventListener("pause", () => {
     state.pausedAt ??= performance.now();
     document.body.classList.add("paused");
