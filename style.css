@@ -1,0 +1,278 @@
+/* ripe receiver: an editorial still life for the kitchen counter.
+   Sized in vmin so one layout fits Nest Hub (1024x600), Hub Max (1280x800)
+   and TVs (1920x1080). Nothing static is pure white (burn-in), and the whole
+   composition drifts slowly. */
+
+:root {
+  --tint: 196 120 72;          /* from the cover; warm apricot until then */
+  --ink: 244 236 224;          /* paper-white, never #fff */
+  --ink-soft: 244 236 224 / 0.62;
+  --ink-faint: 244 236 224 / 0.34;
+  --night: 18 14 12;
+  --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --sans: "Schibsted Grotesk", "Avenir Next", sans-serif;
+  --ease: cubic-bezier(.2, .7, .1, 1);
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: rgb(var(--night));
+  color: rgb(var(--ink));
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- atmosphere ---------- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 18% 30%, rgb(var(--tint) / 0.55), transparent 60%),
+    radial-gradient(90% 80% at 95% 100%, rgb(var(--tint) / 0.25), transparent 70%),
+    rgb(var(--night));
+  transition: background 2.4s var(--ease);
+}
+
+.backdrop-art {
+  position: absolute;
+  inset: -12%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(70px) saturate(1.3) brightness(0.55);
+  opacity: 0;
+  transform: scale(1.1);
+  transition: opacity 2s var(--ease), background-image 0s;
+}
+body.has-art .backdrop-art { opacity: 0.85; }
+
+.backdrop::after { /* vignette for legibility on the right */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 30%, rgb(var(--night) / 0.55) 100%);
+}
+
+.grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- composition ---------- */
+
+.stage {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6vmin;
+  padding: 9vmin 9vmin 13vmin 10vmin;
+  animation: drift 1200s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(1.2vmin, -0.8vmin); }
+  100% { transform: translate(-1vmin, 0.9vmin); }
+}
+
+.cover {
+  position: relative;
+  width: min(62vmin, 44vw);
+  aspect-ratio: 1;
+  border-radius: 2.2vmin;
+  overflow: hidden;
+  background: rgb(var(--tint) / 0.35);
+  box-shadow:
+    0 4vmin 9vmin -2vmin rgb(0 0 0 / 0.65),
+    0 0 0 1px rgb(var(--ink) / 0.06);
+  transform: rotate(-1.2deg);
+  transition: transform 1.2s var(--ease);
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+}
+body.has-art .cover img { opacity: 1; }
+
+.cover-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity 1s var(--ease);
+}
+.cover-empty svg {
+  width: 32%;
+  fill: rgb(var(--ink) / 0.10);
+  stroke: rgb(var(--ink) / 0.28);
+  stroke-width: 1.2;
+}
+body.has-art .cover-empty { opacity: 0; }
+
+.info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6vmin;
+}
+
+.eyebrow {
+  font-size: 2.4vmin;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgb(var(--ink-soft));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title {
+  font-family: var(--serif);
+  font-weight: 560;
+  font-variation-settings: "opsz" 144, "SOFT" 60;
+  font-size: 7.4vmin;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-wrap: balance;
+}
+
+.artist {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 340;
+  font-variation-settings: "opsz" 48, "SOFT" 100;
+  font-size: 4.2vmin;
+  color: rgb(var(--ink-soft));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- the ripening seed timeline ---------- */
+
+.timeline { margin-top: 3.4vmin; }
+.timeline[hidden] { display: none; }
+
+.track {
+  position: relative;
+  height: 0.5vmin;
+  border-radius: 1vmin;
+  background: rgb(var(--ink-faint));
+}
+
+.fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgb(var(--tint) / 0.5), rgb(var(--tint)));
+  filter: brightness(1.35) saturate(1.2);
+}
+
+.seed {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 2.2vmin;
+  height: 2.6vmin;
+  border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
+  transform: translate(-50%, -55%) rotate(18deg);
+  background: radial-gradient(60% 55% at 35% 30%, rgb(var(--ink) / 0.9), rgb(var(--tint)) 70%);
+  box-shadow: 0 0 2.4vmin rgb(var(--tint) / 0.8);
+}
+
+.times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.4vmin;
+  font-size: 2.3vmin;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: rgb(var(--ink-soft));
+}
+
+/* ---------- waiting (before track info is trustworthy) ---------- */
+
+.waiting {
+  display: none;
+  grid-column: 2;
+  grid-row: 1;
+}
+.waiting-label {
+  font-size: 2.6vmin;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgb(var(--ink-soft));
+}
+.waiting-name {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 420;
+  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-size: 10vmin;
+  line-height: 1;
+  margin-top: 1.6vmin;
+}
+body.idle .info { display: none; }
+body.idle .waiting { display: block; animation: rise 1.4s var(--ease) both; }
+
+/* ---------- credit ---------- */
+
+.credit {
+  position: fixed;
+  left: 10vmin;
+  bottom: 5.5vmin;
+  display: flex;
+  align-items: center;
+  gap: 1.2vmin;
+  font-size: 2.2vmin;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgb(var(--ink-faint));
+}
+.leaf { width: 2.6vmin; fill: rgb(var(--tint)); filter: brightness(1.3); }
+
+/* ---------- entrances ---------- */
+
+body.fresh .eyebrow { animation: rise 1.1s var(--ease) both; }
+body.fresh .title   { animation: rise 1.1s 0.08s var(--ease) both; }
+body.fresh .artist  { animation: rise 1.1s 0.16s var(--ease) both; }
+body.fresh .timeline{ animation: rise 1.1s 0.24s var(--ease) both; }
+body.fresh .cover   { animation: settle 1.3s var(--ease) both; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(2.4vmin); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes settle {
+  from { opacity: 0; transform: rotate(-4deg) scale(0.94); }
+  to   { opacity: 1; transform: rotate(-1.2deg); }
+}
+
+/* Portrait or tiny screens: stack. */
+@media (max-aspect-ratio: 1/1) {
+  .stage { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .waiting { grid-column: 1; grid-row: 2; }
+}
+
+body.idle .credit { opacity: 0; }

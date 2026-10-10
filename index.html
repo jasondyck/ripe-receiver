@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ripe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Schibsted+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+</head>
+<body class="idle">
+  <div class="backdrop" aria-hidden="true">
+    <div class="backdrop-art"></div>
+    <div class="grain"></div>
+  </div>
+
+  <main class="stage">
+    <figure class="cover">
+      <img id="art" alt="" crossorigin="anonymous" decoding="async">
+      <div class="cover-empty" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M24 6c9 6 14 15 13 25-1 7-6 11-13 11S12 38 11 31C10 21 15 12 24 6z"/><path d="M24 6c2 10 1 23-2 36" /></svg>
+      </div>
+    </figure>
+
+    <section class="info">
+      <p class="eyebrow" id="album"></p>
+      <h1 class="title" id="title"></h1>
+      <p class="artist" id="artist"></p>
+
+      <div class="timeline" id="timeline" hidden>
+        <div class="track"><div class="fill" id="fill"></div><div class="seed" id="seed"></div></div>
+        <div class="times"><span id="pos">0:00</span><span id="dur">0:00</span></div>
+      </div>
+    </section>
+
+    <section class="waiting">
+      <p class="waiting-label">Playing from</p>
+      <p class="waiting-name" id="waiting-name">AirPlay</p>
+    </section>
+  </main>
+
+  <footer class="credit">
+    <svg class="leaf" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6c9 6 14 15 13 25-1 7-6 11-13 11S12 38 11 31C10 21 15 12 24 6z"/></svg>
+    <span id="credit">ripe</span>
+  </footer>
+
+  <audio id="player"></audio>
+  <script src="receiver.js"></script>
+</body>
+</html>
