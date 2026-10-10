@@ -25,6 +25,7 @@
     durationMs: null,
     at: 0,
     pausedAt: null,
+    remotePaused: false,
   };
 
   // ---------- rendering ----------
@@ -208,7 +209,7 @@
   });
   audio.addEventListener("playing", () => {
     document.body.classList.remove("paused");
-    if (state.pausedAt != null) {
+    if (state.pausedAt != null && !state.remotePaused) {
       state.at += performance.now() - state.pausedAt;
       state.pausedAt = null;
     }
@@ -235,6 +236,17 @@
       state.positionMs = msg.position_ms;
       state.at = performance.now();
       if (state.pausedAt != null) state.pausedAt = state.at;
+    }
+    // Paused on the phone: iOS keeps streaming silence, so the audio element
+    // keeps "playing". Freeze the clock on ripe's word instead.
+    if ("paused" in msg) {
+      state.remotePaused = Boolean(msg.paused);
+      document.body.classList.toggle("paused", state.remotePaused || audio.paused);
+      if (state.remotePaused) state.pausedAt ??= performance.now();
+      else if (!audio.paused && state.pausedAt != null) {
+        state.at += performance.now() - state.pausedAt;
+        state.pausedAt = null;
+      }
     }
     if ("duration_ms" in msg) state.durationMs = msg.duration_ms || null;
 
