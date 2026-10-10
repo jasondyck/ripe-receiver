@@ -153,7 +153,9 @@
 
   // ---------- updates from ripe ----------
 
-  function apply(msg) {
+  // `quiet`: update the screen only. Used inside the LOAD interceptor, where
+  // touching the player's media info can stall the LOAD itself.
+  function apply(msg, quiet = false) {
     if (!msg || typeof msg !== "object") return;
     const before = state.title;
     if ("sender" in msg) state.sender = msg.sender || null;
@@ -175,7 +177,7 @@
 
     setArt(state.art);
     render(state.title && state.title !== before);
-    publish();
+    if (!quiet) publish();
   }
 
   // ---------- Cast ----------
@@ -218,7 +220,7 @@
     pm.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (req) => {
       const media = req.media || {};
       if (media.customData) {
-        apply(media.customData);
+        apply(media.customData, true);
         media.metadata = genericMetadata();
       } else {
         const md = media.metadata || {};
@@ -227,7 +229,7 @@
           artist: md.artist,
           album: md.albumName,
           art: md.images && md.images[0] && md.images[0].url,
-        });
+        }, true);
       }
       return req;
     });
