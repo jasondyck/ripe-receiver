@@ -184,6 +184,16 @@
   const onCast = cast && cast.framework && !new URLSearchParams(location.search).has("demo");
   let context = null;
 
+  // Smart displays draw their own music player over any app playing a
+  // MUSIC_TRACK. Described as generic media instead, our own screen stays.
+  function genericMetadata() {
+    const md = new cast.framework.messages.GenericMediaMetadata();
+    md.title = state.title || state.sender || "ripe";
+    md.subtitle = [state.artist, state.album].filter(Boolean).join(" — ") || undefined;
+    if (state.art) md.images = [new cast.framework.messages.Image(state.art)];
+    return md;
+  }
+
   // Mirror the info into the Cast session (Google Home app, other senders).
   function publish() {
     if (!context) return;
@@ -192,12 +202,7 @@
       const pm = context.getPlayerManager();
       const info = pm.getMediaInformation();
       if (info && state.title) {
-        const md = new cast.framework.messages.MusicTrackMediaMetadata();
-        md.title = state.title;
-        md.artist = state.artist || undefined;
-        md.albumName = state.album || undefined;
-        if (state.art) md.images = [new cast.framework.messages.Image(state.art)];
-        info.metadata = md;
+        info.metadata = genericMetadata();
         pm.setMediaInformation(info, true);
       }
     } catch (e) {
@@ -214,6 +219,7 @@
       const media = req.media || {};
       if (media.customData) {
         apply(media.customData);
+        media.metadata = genericMetadata();
       } else {
         const md = media.metadata || {};
         apply({
@@ -229,6 +235,9 @@
     const options = new cast.framework.CastReceiverOptions();
     options.customNamespaces = { [NS]: cast.framework.system.MessageType.JSON };
     options.skipPlayersLoad = true; // plain WAV: no Shaka/MPL needed
+    // We draw our own screen; don't overlay the default touch player.
+    options.uiConfig = new cast.framework.ui.UiConfig();
+    options.uiConfig.touchScreenOptimizedApp = true;
     options.statusText = "ripe";
     context.addCustomMessageListener(NS, (event) => apply(event.data));
     context.start(options);
