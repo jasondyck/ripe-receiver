@@ -233,8 +233,9 @@
     context.addCustomMessageListener(NS, (event) => apply(event.data));
     context.start(options);
   } else {
-    // ?demo: preview in a desktop browser.
+    // ?demo: preview in a desktop browser (&static: no transitions, for screenshots).
     const p = new URLSearchParams(location.search);
+    if (p.has("static")) document.documentElement.classList.add("static");
     apply({ type: "NOW_PLAYING", sender: p.get("sender") || "iPhone" });
     if (p.get("demo") !== "idle") {
       apply({
